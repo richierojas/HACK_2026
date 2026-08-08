@@ -1,24 +1,67 @@
-# from dac import DAC
-# from synth import Synth
-from buttons import *
+import buttons 
+import oled 
+import time
 import oled
+import menu
+import joystick
+import slider
 
-# dac = DAC()
+last_move = 0
 
-# synth = Synth(dac)
-
-# synth.note_on(440)  # Play A4 note (440 Hz)
-
-# Menu options
 oled.init()
 
-oled.clear()
+while True:
 
-oled.text("HELLO", 10, 5)
+    # Update volume from slider
+    menu.volume = slider.percent()
 
-oled.text("> PIANO", 10, 20)
-oled.text("  BASS", 10, 32)
-oled.text("  SYNTH", 10, 44)
+    # Draw menu
+    menu.draw()
 
-oled.show()
+    now = time.monotonic()
 
+    # Navigate menu
+    if joystick.up() and now - last_move > 0.20:
+        menu.move_up()
+        last_move = now
+
+    elif joystick.down() and now - last_move > 0.20:
+        menu.move_down()
+        last_move = now
+
+# Use for volume control with joystick
+
+    #elif joystick.left() and now - last_move > 0.05:
+       # menu.volume_down()
+        #last_move = now
+
+    #elif joystick.right() and now - last_move > 0.05:
+       # menu.volume_up()
+        #last_move = now
+
+    # Select instrument
+    if joystick.pressed():
+
+        print("Selected:", menu.current())
+        print("Volume:", menu.volume)
+
+        while joystick.pressed():
+            pass
+
+        time.sleep(0.1)
+        
+    events = buttons.update()
+
+    for event in events:
+
+        if event[0] == "pressed":
+            print("PLAY", event[1])
+
+        elif event[0] == "released":
+            print("STOP", event[1], "Held:", round(event[2], 2))
+
+
+
+    
+
+    time.sleep(0.02)
