@@ -52,7 +52,7 @@ class SynthWrapper:
     def releaseActive(self, note):
         #Broadcast relase of note
         self.log_event("note-released", note)
-        #Remove note from modulation buffer
+        #TODO?: Remove note from held notes
         self.synth.release(note)
 
     #Record currently played notes and modulations
