@@ -1,10 +1,11 @@
-import buttons 
-import oled 
+import buttons
+import oled
 import time
 import oled
 import menu
 import joystick
 import slider
+import matrix_keypad
 
 last_move = 0
 
@@ -15,8 +16,8 @@ while True:
     # Update volume from slider
     menu.volume = slider.percent()
 
-    # Draw menu
     menu.draw()
+    # Draw menu
 
     now = time.monotonic()
 
@@ -49,7 +50,7 @@ while True:
             pass
 
         time.sleep(0.1)
-        
+
     events = buttons.update()
 
     for event in events:
@@ -57,11 +58,24 @@ while True:
         if event[0] == "pressed":
             print("PLAY", event[1])
 
+            # synth.note_on(...)
+
         elif event[0] == "released":
             print("STOP", event[1], "Held:", round(event[2], 2))
+            
+    events = matrix_keypad.update()
 
+    for event in events:
+        if event[0] == "pressed":
+            print("PRESSED:", event[1])
 
-
-    
+        elif event[0] == "released":
+            print(
+                "RELEASED:",
+                event[1],
+                "HELD:",
+                round(event[2], 2),
+                "seconds"
+            )
 
     time.sleep(0.02)
