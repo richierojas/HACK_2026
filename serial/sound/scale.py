@@ -36,6 +36,9 @@ class Scale:
         self.octave = octave
         self.quality = quality
 
+    def __str__(self):
+        return f"{self.key}{self.quality}{self.octave}"
+
     # Returns midi number given a note number relative to the root
     # 1 is the root, 2 is 1 above the root, etc
     # -1 is 1 below the root, etc

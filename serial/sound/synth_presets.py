@@ -10,15 +10,17 @@ class Synth_Presets:
                         release_time=0.8,
                     )
     PIANO = "piano"
-    PRESETS = {"piano": (PIANO_FILE, PIANO_ENVELOPE)}
+    PRESET_MAP = {"piano": (PIANO_FILE, PIANO_ENVELOPE)}
+    PRESETS = [PIANO]
 
     def __init__(self, preset=PIANO):
         self.waveform, self.envelope = Synth_Presets.get_preset(preset)
+        self.preset = preset
 
     @staticmethod
     #Returns (waveform, envelope) for a preset
     def get_preset(preset = PIANO):
-        filename, envelope = Synth_Presets.PRESETS(preset)
+        filename, envelope = Synth_Presets.PRESET_MAP[preset]
         return (Synth_Presets.read_raw_wave(filename), envelope)
 
     @staticmethod
