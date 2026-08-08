@@ -1,48 +1,67 @@
-from machine import Pin
-from utime import sleep_ms
-import sys, select
+import buttons 
+import oled 
+import time
+import oled
+import menu
+import joystick
+import slider
 
-#Connect LEDs:
-#   Connect to GPIO pins from left to right corresponding to array
-LED_GPIO_PINS = 0
+last_move = 0
 
-#Connect Switch:
-#   'On' side to 3.3V
-#    Middle to GPIO pin
-#   'Off' side to GRND
-SWITCH_PIN = 3
-     
-led = Pin(LED_GPIO_PINS, Pin.OUT)
-switch = Pin(SWITCH_PIN, Pin.IN, Pin.PULL_DOWN)
-
-server_poll = select.poll()
-server_poll.register(sys.stdin, select.POLLIN)
-
-server_light_state = True
-
-def pin_changed(pin):
-    print('{"type": "switch", "value": %d}' % pin.value())
-
-#Send message whenever switch changes value, default trigger is when value changes
-switch.irq(handler=pin_changed)
+oled.init()
 
 while True:
-    sleep_ms(100)
-    if server_poll.poll(0):
-        #assume poll contains a on or off message
-        server_message = sys.stdin.readline().strip()
-        if(server_message == "on"):
-            server_light_state = True
-        elif(server_message == "off"):
-            server_light_state = False
-    
-    if switch.value() == 1 and server_light_state:
-        led.on()
-    else:
-        led.off()
+
+    # Update volume from slider
+    menu.volume = slider.percent()
+
+    # Draw menu
+    menu.draw()
+
+    now = time.monotonic()
+
+    # Navigate menu
+    if joystick.up() and now - last_move > 0.20:
+        menu.move_up()
+        last_move = now
+
+    elif joystick.down() and now - last_move > 0.20:
+        menu.move_down()
+        last_move = now
+
+# Use for volume control with joystick
+
+    #elif joystick.left() and now - last_move > 0.05:
+       # menu.volume_down()
+        #last_move = now
+
+    #elif joystick.right() and now - last_move > 0.05:
+       # menu.volume_up()
+        #last_move = now
+
+    # Select instrument
+    if joystick.pressed():
+
+        print("Selected:", menu.current())
+        print("Volume:", menu.volume)
+
+        while joystick.pressed():
+            pass
+
+        time.sleep(0.1)
+        
+    events = buttons.update()
+
+    for event in events:
+
+        if event[0] == "pressed":
+            print("PLAY", event[1])
+
+        elif event[0] == "released":
+            print("STOP", event[1], "Held:", round(event[2], 2))
+
+
 
     
 
-
-
-
+    time.sleep(0.02)

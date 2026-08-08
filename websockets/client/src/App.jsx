@@ -7,6 +7,7 @@ function App() {
   const [chatLogs, setChatLogs] = useState([])
   const [masterSwitchState, setMasterSwitchState] = useState(false)
   const [buttonState, setButtonState] = useState(true)
+  const [lastButton, setLastButton] = useState(null)
 
   const wsRef = useRef(null)
 
@@ -36,6 +37,9 @@ function App() {
           }])
         } else if (data.type === "switch") {
           setMasterSwitchState(data.value)
+        } else if (data.type === "button") {
+          console.log('Button pressed:', data.value)
+          setLastButton(data.value)
         }
 
       } catch (e) {
@@ -162,6 +166,35 @@ function App() {
             ))
           )}
         </div>
+        {/*Rave Visualizer*/}
+        <div style={{
+          marginTop: '30px',
+          textAlign: 'center',
+        }}>
+          <h3>Rave Visualizer</h3>
+          <div style={{
+            width: '200px',
+            height: '200px',
+            margin: '20px auto',
+            borderRadius: '50%',
+            background: 
+              lastButton === 'Button 1' ? 'radial-gradient(circle, #ff0000, #ff6666)' :
+              lastButton === 'Button 2' ? 'radial-gradient(circle, #00ff00, #66ff66)' :
+              lastButton === 'Button 3' ? 'radial-gradient(circle, #0000ff, #6666ff)' :
+              lastButton === 'Button 4' ? 'radial-gradient(circle, #ffff00, #ffff66)' :
+              lastButton === 'Button 5' ? 'radial-gradient(circle, #ff00ff, #ff66ff)' :
+              lastButton === 'Button 6' ? 'radial-gradient(circle, #00ffff, #66ffff)' :
+              lastButton === 'Button 7' ? 'radial-gradient(circle, #ffa500, #ffb733)' :
+              lastButton === 'Button 8' ? 'radial-gradient(circle, #800080, #993399)' :
+              'radial-gradient(circle, #cccccc, #eeeeee)',
+            transform: lastButton? 'scale(1.2)' : 'scale(1)',
+            transition: '0.5s'
+          }} />
+          <h3>
+            Last Input: {lastButton || 'Waiting...'}
+          </h3>
+        </div>
+
       </section>
     </>
   )
