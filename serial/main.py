@@ -1,6 +1,5 @@
-#from buttons import *
-#from oled import *
-
+import buttons 
+import oled 
 import time
 import oled
 import menu
@@ -15,7 +14,7 @@ while True:
 
     # Update volume from slider
     menu.volume = slider.percent()
-    
+
     # Draw menu
     menu.draw()
 
@@ -51,5 +50,18 @@ while True:
 
         time.sleep(0.1)
         
+    events = buttons.update()
+
+    for event in events:
+
+        if event[0] == "pressed":
+            print("PLAY", event[1])
+
+        elif event[0] == "released":
+            print("STOP", event[1], "Held:", round(event[2], 2))
+
+
+
+    
 
     time.sleep(0.02)
