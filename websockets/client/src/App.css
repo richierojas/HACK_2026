@@ -135,20 +135,6 @@ body {
   z-index: -1;
 }
 
-/* Title */
-
-.visualizer-title {
-  position: absolute;
-  top: 25px;
-  left: 30px;
-  margin: 0;
-  font-size: 18px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff;
-}
-
 /* Main visualizer orb */
 
 .visualizer-orb {

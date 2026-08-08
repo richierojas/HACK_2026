@@ -95,10 +95,6 @@ function App() {
         {/*Rave Visualizer*/}
         <div className="rave-container">
 
-          <h2 className="visualizer-title">
-            Rave Visualizer
-          </h2>
-
           <div
             className={`visualizer-orb ${lastButton ? lastButton.toLowerCase().replace(' ', '') : ''}`}
           />
