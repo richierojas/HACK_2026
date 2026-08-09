@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import {hero} from './components/hero.jsx'
 import './App.css'
 
 function App() {
@@ -90,6 +91,7 @@ function App() {
 
   return (
     <>
+      <Hero />
       <section id="center">
 
         {/*Rave Visualizer*/}
