@@ -37,10 +37,6 @@ def show():
     display.show()
 
 
-def pixel(x, y):
-    display.pixel(x, y, 1)
-
-
 def line(x0, y0, x1, y1):
     display.line(x0, y0, x1, y1, 1)
 
@@ -49,31 +45,23 @@ def rect(x, y, w, h):
     display.rect(x, y, w, h, 1)
 
 
-def fill_rect(x, y, w, h):
-    display.fill_rect(x, y, w, h, 1)
+def fill_rect(x, y, w, h, color=1):
+    display.fill_rect(x, y, w, h, color)
 
+def pixel(x, y, color=1):
+    display.pixel(x, y, color)
 
-def draw_letter(letter, x, y):
-
+def draw_letter(letter, x, y, color=1):
     if letter not in FONT:
         letter = " "
-
     bitmap = FONT[letter]
-
     for row in range(7):
-
         row_bits = bitmap[row]
-
         for col in range(5):
+            if row_bits & (1 << (4 - col)):
+                pixel(x + col, y + row, color)
 
-            if row_bits & (1 << (4-col)):
-                pixel(x + col, y + row)
-
-
-def text(message, x, y):
-
+def text(message, x, y, color=1):
     for letter in message:
-
-        draw_letter(letter, x, y)
-
+        draw_letter(letter, x, y, color)
         x += 6

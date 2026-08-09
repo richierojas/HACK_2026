@@ -18,102 +18,220 @@ from sound.synth import Synth_Wrapper
 from sound.scale import Scale
 from sound.synth_presets import Synth_Presets
 
-scale = Scale('C', 3, Scale.MINOR)
-sample_rate = 22050
-synth_wrapper = Synth_Wrapper(scale)
 audio = audiobusio.I2SOut(
     bit_clock=board.GP1,
     word_select=board.GP2,
     data=board.GP0,
 )
 
-num_voices = 2
+oled.init()
+menu.draw()
+
+scale = Scale('C', 3, Scale.MINOR)
+sample_rate = 44100
+
+LIVE_LEVEL = 0.3
+RECORD_LEVEL = 0.1
+
+piano = Synth_Wrapper(scale, Synth_Presets.PIANO, sample_rate=sample_rate)
+guitar = Synth_Wrapper(scale, Synth_Presets.GUITAR, sample_rate=sample_rate)
+bass = Synth_Wrapper(scale, Synth_Presets.BASS, sample_rate=sample_rate)
+#Change to percussion scale in Scale class eventually
+percussion_scale = Scale('C', 1)
+percussion = Synth_Wrapper(percussion_scale, Synth_Presets.KICK, sample_rate=sample_rate)
+
+instruments = { piano.name:piano, guitar.name:guitar, bass.name:bass, percussion.name:percussion }
+INSTRUMENT_NAMES = list(instruments.keys())
+voice_map = {} # name: {live:voice#, recording:voice#}
+
+voice_index = 0
+for name in INSTRUMENT_NAMES:
+    instrument = instruments[name]
+
+    live_voice = voice_index
+    voice_index += 1
+    #*only one recording per instrument for now
+    rec_voice = voice_index
+    voice_index += 1
+
+    voice_map[name] = {"live":live_voice, "recording": rec_voice}
+
+num_voices = voice_index
 
 mixer = audiomixer.Mixer(
-    voice_count=2,
+    voice_count=num_voices,
     sample_rate=sample_rate,
     channel_count=1,
     bits_per_sample=16,
-    samples_signed=True)
-
-preset = Synth_Presets()
-synth = synthio.Synthesizer(sample_rate=sample_rate)
-note = synthio.Note(frequency=synthio.midi_to_hz(scale.get_midi_note(1)), envelope=preset.envelope, waveform=preset.waveform)
-
+    samples_signed=True,
+)
 audio.play(mixer)
-mixer.voice[0].play(synth_wrapper.synth)
-mixer.voice[0].level = 0.3
-mixer.voice[1].play(synth_wrapper.recording_synths[0])
-mixer.voice[1].level = 0.075
-#mixer.voice[1].play(synth)
 
+for name, wrapper in instruments.items():
+    voices = voice_map[name]
+    mixer.voice[voices["live"]].play(wrapper.synth)
+    mixer.voice[voices["live"]].level = LIVE_LEVEL
+    mixer.voice[voices["recording"]].play(wrapper.recording_synths[0])
+    mixer.voice[voices["recording"]].level = RECORD_LEVEL
 
+active_instrument = INSTRUMENT_NAMES[0]
+
+is_recording = False
+
+def get_active_instrument():
+    return instruments[active_instrument]
+
+def set_active_instrument(name):
+    global active_instrument
+    active_instrument = name
+
+def select_and_handle():
+    select_tuple = menu.select() #None if submenu, (menu, item_string) if item 
+    print("Selected:", menu.current())
+    if select_tuple is None:
+        return
+    item_menu = select_tuple[0]
+    item = select_tuple[1]
+    if(item_menu is menu.instruments_menu):
+        set_active_instrument(item)
+          
+#TODO: Add pausing and playing
+def toggle_record():
+    instrument = get_active_instrument()
+    if not instrument.is_recording:
+        instrument.record()
+    else:
+        instrument.end_record()
+        instrument.start_playback()
+
+def pause_all_playback():
+    for instrument in INSTRUMENT_NAMES:
+        pause_playback(instrument)
+
+def resume_all_playback():
+    for instrument in INSTRUMENT_NAMES:
+        play_playback(instrument)
+
+#toggles pause/resume for individual instrument
+def toggle_playback(instrument_name):
+    instrument = instruments[instrument_name]
+    if instrument.is_playback:
+        pause_playback(instrument_name)
+    else:
+        play_playback(instrument_name)
+
+def play_playback(instrument_name):
+    instrument = instruments[instrument_name]
+    instrument.start_playback() #resumes if already
+
+def pause_playback(instrument_name):
+    instrument = instruments[instrument_name]
+    instrument.pause_playback()
+
+#Bottom bottom three keys are (quick=up, long=back), select, move 
+def on_keypad_pressed(key : str):
+    if key == '*':
+        pass #see keypad_released, short press moves up, long press moves back 
+    elif key == '#':
+        menu.move_down()
+    elif key == '0':
+        select_and_handle()
+
+def on_keypad_released(key : str, duration):
+    if key == '*':
+        if duration < 0.5:
+            menu.move_up()
+        else:
+            menu.back()
+
+def on_button_pressed(button_number : int):
+    note = get_active_instrument().press(button_number)
+    print("Mixer playing: ", mixer.voice[0].playing)
+
+def on_button_released(button_number : int, duration):
+    get_active_instrument().release(button_number)
+
+def on_joystick_pressed():
+    toggle_record()
+
+def on_joystick_up(joystick : joystick):
+    amount = joystick.fraction_y() #0 to 1
+
+def on_joystick_down(joystick : joystick):
+    amount = abs(joystick.fraction_y()) #0 to 1
+
+def on_joystick_right(joystick : joystick):
+    amount = joystick.fraction_x() #0 to 1
+
+def on_joystick_left(joystick : joystick):
+    amount = abs(joystick.fraction_x()) #0 to 1
 
 async def main_loop():
+    menu.draw()
     last_move = 0
-    is_recording = False
     while True:
 
         now = time.monotonic()
 
         # Navigate menu
         if joystick.up() and now - last_move > 0.20:
-            menu.move_up()
+            on_joystick_up(joystick)
             last_move = now
 
         elif joystick.down() and now - last_move > 0.20:
-            menu.move_down()
+            on_joystick_down(joystick)
+            last_move = now
+
+        elif joystick.right() and now - last_move > 0.20:
+            on_joystick_right(joystick)
+            last_move = now
+
+        elif joystick.left() and now - last_move > 0.20:
+            on_joystick_left(joystick)
             last_move = now
 
         # Select instrument
         if joystick.pressed():
-            if (not is_recording):
-                synth_wrapper.record()
-                is_recording=True
-            else:
-                is_recording=False
-                synth_wrapper.end_record()
-                synth_wrapper.start_playback()
-
-            print("Selected:", menu.current())
-            print("Volume:", menu.volume.value)
-
+            on_joystick_pressed()
 
             while joystick.pressed():
-                pass
+                await asyncio.sleep(0) #pass but async
 
-            time.sleep(0.1)
+            await asyncio.sleep(0.1)
 
+        #HANDLE BUTTONS
         events = buttons.update()
-
         for eventraw in events:
             event = json.loads(eventraw)
-
+            
             if event["type"] == "button-pressed":
+                button_number = event["value"]["button"]
                 print("PLAY", eventraw)
-                note = synth_wrapper.press(event["value"]["button"])
-                print("Mixer playing: ", mixer.voice[0].playing)
+                on_button_pressed(button_number)
 
                 # synth.note_on(...)
 
             elif event["type"] == "button-released":
-                synth_wrapper.release(event["value"]["button"])
-                print("STOP", eventraw, "Held:", round(event["value"]["duration"], 2))
+                duration = event["value"]["duration"]
+                button_number = event["value"]["button"]
+                print("STOP", eventraw, "Held:", round(duration, 2))
+                on_button_released(button_number, duration)
 
+        #HANDLE KEYPAD
         events = matrix_keypad.update()
+        for eventraw in events:
+            event = json.loads(eventraw)
 
-        for event in events:
-            if event[0] == "pressed":
-                print("PRESSED:", event[1])
+            if event["type"] == "keypad-pressed":
+                key = event["value"]["key"]
+                print("PRESSED", eventraw)
+                on_keypad_pressed(key)
 
-            elif event[0] == "released":
-                print(
-                    "RELEASED:",
-                    event[1],
-                    "HELD:",
-                    round(event[2], 2),
-                    "seconds"
-                )
+            elif event["type"] == "keypad-released":
+                key = event["value"]["key"]
+                duration = event["value"]["duration"]
+                print("RELEASED:", eventraw)
+                on_keypad_released(key, duration)
 
         await asyncio.sleep(0.02)
 

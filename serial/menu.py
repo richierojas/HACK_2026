@@ -1,4 +1,5 @@
 import oled
+from sound.synth_presets import Synth_Presets
 
 class MenuDataItem:
     def __init__(self, name : str, value, update_function = None ):
@@ -146,7 +147,7 @@ class Menu:
 
 volume = BarDataItem("VOL", 75, 100)
 #TODO: Add functionality for menu options
-instruments_menu = Menu("INSTRUMENTS", items=["PIANO", "BASS", "GUITAR", "PAD"])
+instruments_menu = Menu("INSTRUMENTS", items=[Synth_Presets.PIANO, Synth_Presets.GUITAR, Synth_Presets.BASS, Synth_Presets.KICK])
 volume_menu = Menu("VOLUME", items=["GLOBAL", "ACTIVE", "PLAYBACK"])
 record_menu = Menu("RECORD", items=["RECORD", "PLAY-PAUSE"])
 key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
@@ -177,15 +178,16 @@ def volume_down():
 #TODO: Add behavior for selecting item options
 def select():
     """Enter currently selected submenu. 
-    Returns true if a submenu was selected, false if it was an item"""
+    Returns None if a submenu was selected, returns (menu, item string) if an item was selected"""
     global _active
-    selected = _active.current()
-    if isinstance(selected, Menu):
-        _active = selected
-        return True
-    return False
+    picked = _active.current()
+    if isinstance(picked, Menu):
+        _active = picked
+        return None
+    return (_active, picked)
 
 def back():
+    """moves to supermenu"""
     global _active
     if _active.supermenu is not None:
         _active = _active.supermenu
