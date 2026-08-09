@@ -28,7 +28,7 @@ function App() {
   // Initialize WebSocket connection
   useEffect(() => {
     // Connect to WebSocket server
-    wsRef.current = new WebSocket('ws://localhost:8765')
+    wsRef.current = new WebSocket('ws://0.0.0.0:8765')
 
     wsRef.current.onopen = () => {
       console.log('Connected to WebSocket server')

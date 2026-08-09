@@ -954,6 +954,90 @@ html {
   line-height: 1.7;
 }
 
+.band-grid {
+  width: min(1200px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.member-card {
+  background: rgba(10, 8, 30, 0.82);
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 24px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow:
+    0 0 18px rgba(0, 255, 255, 0.08),
+    0 0 28px rgba(180, 60, 255, 0.08);
+  transition: 0.3s ease;
+}
+
+.member-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 0 24px rgba(0, 255, 255, 0.16),
+    0 0 34px rgba(180, 60, 255, 0.12);
+}
+
+.member-photo {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  border: 3px solid rgba(0, 255, 255, 0.45);
+  box-shadow:
+    0 0 16px rgba(0, 255, 255, 0.22),
+    0 0 28px rgba(180, 60, 255, 0.16);
+}
+
+.member-card h3 {
+  margin: 0 0 10px;
+  font-size: 32px;
+  color: #ffffff;
+}
+
+.member-card h4 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #c9c2e8;
+}
+
+.member-card p {
+  margin: 0;
+  color: #d6d1e8;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+.group-photo-section {
+  width: min(1000px, 100%);
+  margin: 70px auto 0;
+  text-align: center;
+}
+
+.group-photo-title {
+  font-size: 32px;
+  margin-bottom: 22px;
+  color: #ffffff;
+  text-shadow:
+    0 0 10px rgba(255, 0, 255, 0.35),
+    0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.group-photo {
+  width: 100%;
+  max-width: 900px;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.12),
+    0 0 40px rgba(180, 60, 255, 0.08);
+}
+
 /*Artemis Navbar*/
 
 .navbar {
