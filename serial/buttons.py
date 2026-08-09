@@ -1,4 +1,5 @@
 import time
+import json
 import board
 from digitalio import DigitalInOut, Direction, Pull
 
@@ -35,6 +36,7 @@ for name, pin in button_pins:
 
     buttons.append({
         "name": name,
+        "button-number": int(name.split()[1]), #get number from name "Button <number>"
         "pin": btn,
         "last": False,
         "start": 0
@@ -66,12 +68,12 @@ def update():
         # Just pressed
         if pressed and not button["last"]:
             button["start"] = now
-            events.append(("pressed", button["name"]))
+            events.append(json.dumps({"type": "button-pressed", "value": {"button": button["button-number"]}}))
 
         # Just released
         elif not pressed and button["last"]:
             duration = now - button["start"]
-            events.append(("released", button["name"], duration))
+            events.append(json.dumps({"type": "button-released", "value": {"button": button["button-number"], "duration": duration}}))
 
         button["last"] = pressed
 
