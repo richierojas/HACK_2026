@@ -18,7 +18,7 @@ export function Music() {
           <span className="song-number">01</span>
 
           <div>
-            <h3>Track One</h3>
+            <h3>Sweet Dreams (Are Made of This) - Eurythmics</h3>
             <p>Recording coming soon</p>
           </div>
         </div>
@@ -27,7 +27,7 @@ export function Music() {
           <span className="song-number">02</span>
 
           <div>
-            <h3>Track Two</h3>
+            <h3>A Thousand Miles - Vanessa Carlton</h3>
             <p>Recording coming soon</p>
           </div>
         </div>
@@ -36,7 +36,7 @@ export function Music() {
           <span className="song-number">03</span>
 
           <div>
-            <h3>Encore</h3>
+            <h3>Experience - Ludovico Einaudi</h3>
             <p>Recording coming soon</p>
           </div>
         </div>

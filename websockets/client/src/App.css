@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Orbitron:wght@400;500;600;700;900&display=swap');
+
 :root {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Orbitron', sans-serif;
   color: white;
   background: #050510;
 }
@@ -12,13 +14,56 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+
   background:
     radial-gradient(circle at 50% 40%, #171735 0%, #080814 45%, #020207 100%);
+
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Star field */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px),
+    radial-gradient(circle, rgba(0,255,255,0.7) 1px, transparent 1px),
+    radial-gradient(circle, rgba(180,120,255,0.7) 1px, transparent 1px);
+
+  background-size:
+    90px 90px,
+    140px 140px,
+    210px 210px;
+
+  background-position:
+    0 0,
+    35px 60px,
+    80px 25px;
+
+  opacity: 0.5;
+
+  animation: starDrift 40s linear infinite;
+}
+
+@keyframes starDrift {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-200px);
+  }
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 /* Main page */
@@ -368,6 +413,8 @@ body {
   min-height: 100vh;
   width: 100%;
 
+  padding-top: 90px;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,23 +435,65 @@ body {
 
 .hero::before {
   content: '';
+
   position: absolute;
-  
-  width: 600px;
-  height: 600px;
 
-  top: 50%;
-  left: 50%;
+  width: 340px;
+  height: 340px;
 
-  transform: translate(-50%, -50%);
+  left: -120px;
+  top: 38%;
 
   border-radius: 50%;
 
-  background: #7c2cff;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #c14cff,
+      #6220a8 35%,
+      #18052e 70%,
+      #05010d 100%
+    );
 
-  filter: blur(180px);
+  box-shadow:
+    0 0 40px rgba(190, 70, 255, 0.5),
+    0 0 100px rgba(100, 20, 220, 0.35);
 
-  opacity: 0.25;
+  opacity: 0.75;
+
+  z-index: 0;
+}s
+
+.hero::after {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      ellipse at 82% 45%,
+      rgba(30, 110, 255, 0.22),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 72% 65%,
+      rgba(170, 30, 255, 0.20),
+      transparent 38%
+    ),
+    radial-gradient(
+      ellipse at 95% 75%,
+      rgba(0, 255, 255, 0.08),
+      transparent 30%
+    );
+
+  filter: blur(35px);
+
+  opacity: 0.55;
+
+  z-index: 0;
 }
 
 .hero-content {
@@ -822,23 +911,6 @@ html {
     margin-bottom: 70px;
   }
 }
-Save and check the page.
-You should now have the flow:
-COSMIC SPELLSYNTH
-        ↓
-THE INSTRUMENT
-        ↓
-SOUND PROFILES
-
-  Synth | Guitar | Cosmic
-
-        ↓
-EFFECTS
-
- Echo | Distortion | Vibrato
-
-        ↓
-LIVE VISUALIZER
 
 /*Band Section*/
 .band-section {
@@ -880,4 +952,154 @@ LIVE VISUALIZER
   color: #bdb7ce;
   font-size: 18px;
   line-height: 1.7;
+}
+
+/*Artemis Navbar*/
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 90px;
+
+  padding: 10px 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 1000;
+
+  background: rgba(2, 2, 12, 0.72);
+  backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+/* Crop the extra whitespace around the original logo image */
+.nav-symbol-wrap {
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  position: relative;
+}
+
+.nav-logo-image {
+  position: absolute;
+
+  width: 150px;
+  height: auto;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -33%) scale(1.7);
+
+  filter:
+    drop-shadow(0 0 5px rgba(0, 220, 255, 0.7))
+    drop-shadow(0 0 12px rgba(80, 130, 255, 0.35));
+}
+
+.nav-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.artemis-name {
+  color: #ffffff;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+
+  letter-spacing: 3px;
+
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.8),
+    0 0 14px rgba(0, 255, 255, 0.35);
+}
+
+.audio-name {
+  margin-top: 7px;
+
+  color: #d9faff;
+
+  font-size: 10px;
+  letter-spacing: 9px;
+
+  text-shadow:
+    0 0 8px rgba(0, 255, 255, 0.5);
+}
+
+.nav-logo-image {
+  width: 190px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+
+  /* THIS gives you the spacing */
+  gap: 55px;
+}
+
+.nav-links a {
+  color: #eeeeff;
+  text-decoration: none;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
+  transition: 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #00ffff;
+
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.hero {
+  width: 100%;
+  border: none;
+  outline: none;
+}
+
+.nav-logo,
+.hero h1,
+.instrument-header h2,
+.sound-header h2,
+.band-header h2,
+.music-header h2 {
+  font-family: 'Cinzel Decorative', serif;
+}
+
+.hero h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 900;
+  letter-spacing: 6px;
 }

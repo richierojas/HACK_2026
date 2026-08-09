@@ -32,40 +32,27 @@ export function SoundProfiles() {
         </div>
 
         <div className="sound-card">
-          <h3>Cosmic</h3>
+          <h3>Drums</h3>
           <p>
-            An atmospheric sound profile filled with spacey tones
-            and otherworldly textures.
+            A powerful percussion profile with hard-hitting beats
+            designed to drive the rhythm across the cosmic stage.
           </p>
         </div>
 
       </div>
 
       <div className="effects-header">
-        <p className="section-tag">EFFECTS</p>
+        <p className="section-tag">EFFECT</p>
         <h2>Alter the Sound</h2>
       </div>
 
       <div className="effects-grid">
 
         <div className="effect-card">
-          <h3>Echo</h3>
-          <p>
-            Repeats notes to create a spacious, atmospheric sound.
-          </p>
-        </div>
-
-        <div className="effect-card">
-          <h3>Distortion</h3>
-          <p>
-            Adds an aggressive edge and heavier texture to the sound.
-          </p>
-        </div>
-
-        <div className="effect-card">
           <h3>Vibrato</h3>
           <p>
-            Adds subtle pitch movement for a more expressive sound.
+            Adds a pulsing pitch movement that gives each note
+            a more expressive, otherworldly character.
           </p>
         </div>
 

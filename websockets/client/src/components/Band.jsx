@@ -3,9 +3,9 @@ export function Band() {
     <section id="band" className="band-section">
 
       <div className="band-header">
-        <p className="section-tag">MEET THE BAND</p>
+        <p className="section-tag">The Cosmic Coven</p>
 
-        <h2>The Minds Behind the Magic</h2>
+        <h2>Artemis Audio</h2>
 
         <p>
           Cosmic SpellSynth was created by a team combining software,

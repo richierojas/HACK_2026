@@ -6,7 +6,7 @@ export function Hero() {
             <div className="hero-content">
                 
                 <p className="hero-tag">
-                    J² BATTLE OF THE BUILDS
+                    Artemis Audio Presents
                 </p>
 
                 <h1> COSMIC SPELLSYNTH</h1>
