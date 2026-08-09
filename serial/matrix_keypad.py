@@ -1,6 +1,7 @@
 import time
 import board
 import keypad
+import json
 
 row_pins = (
     board.GP9,
@@ -26,6 +27,20 @@ press_start = {}
 
 
 def update():
+    """
+        Update returns event as:
+        On press:
+        {
+        "type": "keypad-pressed", 
+        "value": {"key": key}
+        }
+        On release:
+        {
+        "type": "keypad-released", 
+        "value": {"key": key, "duration": duration}
+        }
+    """
+        
     events = []
 
     while True:
@@ -38,14 +53,12 @@ def update():
 
         if event.pressed:
             press_start[key] = time.monotonic()
-            events.append(("pressed", key))
+            events.append(json.dumps({"type": "keypad-pressed", "value": {"key": key}}))
 
         else:
             start = press_start.pop(key, time.monotonic())
             duration = time.monotonic() - start
 
-            events.append(
-                ("released", key, duration)
-            )
+            events.append(json.dumps({"type": "keypad-released", "value": {"key": key, "duration": duration}}))
 
     return events
