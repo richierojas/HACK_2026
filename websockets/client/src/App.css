@@ -358,3 +358,155 @@ body {
     height: 180px;
   }
 }
+
+/* Hero Section */
+.hero {
+  min-height:100 vh;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  overflow: hidden;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 40% 
+      rgba(110, 35, 190, 0.45) 0%,
+      rgba(20, 8, 45, 0.95) 40%,
+      #020207 75%
+    );
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  
+  width: 600px;
+  height: 600px;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background: #7c2cff;
+
+  filter: blur(180px);
+
+  opacity: 0.25;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+
+  max-width: 900px;
+
+  padding: 40px 20px;
+}
+
+.hero-tag {
+  margin: 0 0 20px;
+
+  font-size: 14px;
+  letter-spacing: 6px;
+
+  color: #00ffff;
+
+  text-transform: uppercase;
+
+  text-shadow:
+    0 0 8px rgba(0, 255, 255, 0.8);
+}
+
+.hero h1 {
+  margin: 0;
+
+  font-size: clamp(50px, 8vw, 100px);
+
+  line-height: 1;
+
+  letter-spacing: 8px;
+
+  color: white;
+
+  text-shadow:
+    0 0 10px #ff00ff,
+    0 0 25px #7c2cff,
+    0 0 50px rgba(0, 255, 255, 0.7);
+}
+
+.hero h2 {
+  margin-top: 25px;
+
+  font-size: clamp(20px, 3vw, 30px);
+
+  font-weight: 400;
+
+  letter-spacing: 2px;
+
+  color: #ddd2ff;
+}
+
+.hero-description {
+  max-width: 650px;
+
+  margin: 25px auto;
+
+  font-size: 18px;
+
+  line-height: 1.7;
+
+  color: #bab5c8;
+}
+
+.hero-button {
+  display: inline-block;
+
+  margin-top: 15px;
+
+  padding: 15px 30px;
+
+  border: 1px solid #00ffff;
+
+  border-radius: 30px;
+
+  color: white;
+
+  text-decoration: none;
+  text-transform: uppercase;
+
+  font-size: 13px;
+  letter-spacing: 2px;
+
+  background: rgba(0, 255, 255, 0.05);
+
+  box-shadow:
+    0 0 12px rgba(0, 255, 255, 0.5),
+    inset 0 0 12px rgba(0, 255, 255, 0.1);
+
+  transition: 0.3s ease;
+}
+
+.hero-button:hover {
+  background: #00ffff;
+
+  color: #050510;
+
+  transform: scale(1.05);
+
+  box-shadow:
+    0 0 20px #00ffff,
+    0 0 50px rgba(0, 255, 255, 0.7);
+}
+
+html {
+  scroll-behavior: smooth;
+}
