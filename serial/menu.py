@@ -1,7 +1,7 @@
 import oled
 
 class MenuDataItem:
-    def __init__(self, name : str, value, update_function : callable[...,...] = None ):
+    def __init__(self, name : str, value, update_function = None ):
         """If value max is provided, draw() will show a bar with value's percentage by default"""
         self.name = name
         self.value = value
@@ -25,38 +25,44 @@ class BarDataItem(MenuDataItem):
         return self.value / self.value_max
 
     def up(self):
-        self.value += self.value_update_amount
+        self.value = min(self.value + self.value_update_amount, self.value_max)
 
     def down(self):
-        self.value -= self.value_update_amount
+        """Does not allow negative values"""
+        self.value = max(self.value - self.value_update_amount, 0)
 
 # * Assume only one item shown in the bar for now
+# ! Does not handle empty arrays, passed arrays must be None or filled
 class Menu:
     def __init__(self, name : str, data_items_array = None, bar_data_item : BarDataItem = None, submenus = None, items = None):
         self.name = name
         self.selected = 0
         self.submenus = submenus
-        data_items_array = data_items_array
-        self.data_items = { item.name : item for item in data_items_array }
+        self.data_items = None
+        if data_items_array is not None:
+            self.data_items = { item.name : item for item in data_items_array }
 
         #Data item that is shown in the bar, should be in data_items to prevent undefined behavior
         #?Add print if not present in data_items?
         self.bar_data_item = bar_data_item
 
-        for menu in self.submenus:
-            menu.supermenu = self
+        if self.submenus is not None:
+            for menu in self.submenus:
+                menu.supermenu = self
 
         self.items = items
         self.supermenu = None
+
+    def _entries(self):
+        return self.submenus if self.submenus is not None else self.items
 
     def move_up(self):
         if self.selected > 0:
             self.selected -= 1
 
-
     def move_down(self):
-        if selected < len(self.submenus if self.submenus is not None else self.items) - 1:
-            selected += 1
+        if self.selected < len(self._entries()) - 1:
+            self.selected += 1
 
     #! Does not support multiple bar items
     def bar_up(self):
@@ -67,15 +73,13 @@ class Menu:
         self.bar_data_item.down()
 
     def current(self):
-        menu_array = self.submenus if self.submenus is not None else self.data_items
+        menu_array = self._entries()
         return menu_array[self.selected]
 
     #TODO: Add more bar options
     def draw(self, showBar = True):
-        if self.items is None:
-            menu_items = [submenu.name for submenu in self.submenus]
-        else:
-            menu_items = self.items
+        entries = self._entries()
+        menu_items = [(entry.name if isinstance(entry, Menu) else entry) for entry in entries]
 
         supermenus = []
         supermenu = self.supermenu
@@ -84,9 +88,9 @@ class Menu:
             supermenu = supermenu.supermenu
         #TODO: finish displaying super menus and update selection above
         supermenu_string = ""
-        for supermenu in supermenus.reverse():
-            supermenu_string += f"\{supermenu}"
-        supermenu_string += f"\{self.name}"
+        for sm in reversed(supermenus):
+            supermenu_string += f"\\{sm.name}"
+        supermenu_string += f"\\{self.name}"
 
 
         oled.clear()
@@ -96,7 +100,7 @@ class Menu:
         oled.line(0, 11, 127, 11)
 
         # Show 4 menu items
-        start = max(0, selected - 1)
+        start = max(0, self.selected - 1)
 
         if start > len(menu_items) - 4:
             start = max(0, len(menu_items) - 4)
@@ -105,7 +109,7 @@ class Menu:
 
         for i in range(start, min(start + 4, len(menu_items))):
 
-            if i == selected:
+            if i == self.selected:
 
                 # Highlight bar
                 oled.fill_rect(0, y - 1, 128, 9, 1)
@@ -148,8 +152,42 @@ record_menu = Menu("RECORD", items=["RECORD", "PLAY-PAUSE"])
 key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
 #if time: chord_menu
 
-main_menu = Menu("MAIN MENU", submenus=[instruments_menu, volume_menu, record_menu, key_menu], data_items=[volume], bar_data_item=volume)
+main_menu = Menu("MAIN MENU", submenus=[instruments_menu, volume_menu, record_menu, key_menu], data_items_array=[volume], bar_data_item=volume)
 
+_active = main_menu
 
+def move_up():
+    _active.move_up()
+
+def move_down():
+    _active.move_down()
+
+def current():
+    return _active.current()
+
+def draw():
+    _active.draw()
+
+def volume_up():
+    volume.up()
+
+def volume_down():
+    volume.down()
+
+#TODO: Add behavior for selecting item options
+def select():
+    """Enter currently selected submenu. 
+    Returns true if a submenu was selected, false if it was an item"""
+    global _active
+    selected = _active.current()
+    if isinstance(selected, Menu):
+        _active = selected
+        return True
+    return False
+
+def back():
+    global _active
+    if _active.supermenu is not None:
+        _active = _active.supermenu
 
 

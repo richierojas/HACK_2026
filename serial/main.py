@@ -14,7 +14,7 @@ oled.init()
 while True:
 
     # Update volume from slider
-    menu.volume = slider.percent()
+    menu.volume.value = slider.percent()
 
     menu.draw()
     # Draw menu
@@ -44,7 +44,7 @@ while True:
     if joystick.pressed():
 
         print("Selected:", menu.current())
-        print("Volume:", menu.volume)
+        print("Volume:", menu.volume.value)
 
         while joystick.pressed():
             pass

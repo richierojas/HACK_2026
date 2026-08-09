@@ -76,7 +76,7 @@ async def main_loop():
                 synth_wrapper.start_playback()
 
             print("Selected:", menu.current())
-            print("Volume:", menu.volume)
+            print("Volume:", menu.volume.value)
 
 
             while joystick.pressed():
