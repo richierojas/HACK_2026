@@ -178,6 +178,12 @@ def on_keypad_pressed(key : str):
         menu.move_down()
     elif key == '0':
         select_and_handle()
+    else:
+        try:
+            keynumber = int(key)
+            menu.move_to_selection(key)
+        except ValueError:
+            pass
     menu.draw()
 
 def on_keypad_released(key : str, duration):

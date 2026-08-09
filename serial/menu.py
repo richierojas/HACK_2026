@@ -57,7 +57,7 @@ class Menu:
     def _entries(self):
         return self.submenus if self.submenus is not None else self.items
 
-    def move_selection(self, selection_number):
+    def move_to_selection(self, selection_number):
         if selection_number == 0:
             selection_number = 10
         selection_index = selection_number - 1
@@ -69,7 +69,7 @@ class Menu:
             self.selected -= 1
 
     def move_down(self):
-        if self.selected < len(self._entries()):
+        if self.selected < len(self._entries()) - 1:
             self.selected += 1
 
     #! Does not support multiple bar items
@@ -154,7 +154,7 @@ class Menu:
 
 volume = BarDataItem("VOL", 75, 100)
 #TODO: Add functionality for menu options
-instruments_menu = Menu("INSTRUMENTS", items=[Synth_Presets.PIANO, Synth_Presets.GUITAR, Synth_Presets.BASS, Synth_Presets.KICK])
+instruments_menu = Menu("INSTRUMENTS", items=[Synth_Presets.PIANO, Synth_Presets.GUITAR, Synth_Presets.BASS])
 volume_menu = Menu("VOLUME", items=["GLOBAL", "ACTIVE", "PLAYBACK"])
 record_menu = Menu("RECORD", items=["RECORD-STOP", "PLAY-PAUSE", "PAUSE ALL", "PLAY ALL"])
 key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
@@ -163,6 +163,9 @@ key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
 main_menu = Menu("MAIN MENU", submenus=[instruments_menu, volume_menu, record_menu, key_menu], data_items_array=[volume], bar_data_item=volume)
 
 _active = main_menu
+
+def move_to_selection(selection_number):
+    _active.move_to_selection(selection_number=selection_number)
 
 def move_up():
     _active.move_up()
