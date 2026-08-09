@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import {Navbar} from './components/Navbar.jsx'
 import {Hero} from './components/Hero.jsx'
+import { Instrument } from './components/Instrument.jsx'
+import { SoundProfiles } from './components/SoundProfiles.jsx'
+import { Band } from './components/Band.jsx'
 import './App.css'
 
 function App() {
@@ -91,8 +95,13 @@ function App() {
 
   return (
     <>
+      
+      <Navbar />
       <Hero />
-      <section id="center">
+      <Instrument />
+      <SoundProfiles />
+      <Band />
+      <section id="live">
 
         {/*Rave Visualizer*/}
         <div className="rave-container">
