@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import {hero} from './components/hero.jsx'
+import {Hero} from './components/Hero.jsx'
 import './App.css'
 
 function App() {
