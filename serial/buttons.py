@@ -2,6 +2,19 @@ import time
 import board
 from digitalio import DigitalInOut, Direction, Pull
 
+#Update returns event as:
+# On press:
+# {
+#   "type": "button-pressed", 
+#   "value": {"button": button["button-number"]}
+# }
+# On release:
+# {
+#   "type": "button-released", 
+#   "value": {"button": button["button-number"], "duration": duration}
+# }
+
+
 button_pins = [
     ("Button 1", board.GP10),
     ("Button 2", board.GP11),
@@ -29,7 +42,19 @@ for name, pin in button_pins:
 
 
 def update():
-
+    """
+        Update returns event as:
+        On press:
+        {
+        "type": "button-pressed", 
+        "value": {"button": button["button-number"]}
+        }
+        On release:
+        {
+        "type": "button-released", 
+        "value": {"button": button["button-number"], "duration": duration}
+        }
+    """
     events = []
 
     now = time.monotonic()
