@@ -57,12 +57,19 @@ class Menu:
     def _entries(self):
         return self.submenus if self.submenus is not None else self.items
 
+    def move_selection(self, selection_number):
+        if selection_number == 0:
+            selection_number = 10
+        selection_index = selection_number - 1
+        if selection_index < len(self._entries()):
+            self.selected = selection_index
+
     def move_up(self):
         if self.selected > 0:
             self.selected -= 1
 
     def move_down(self):
-        if self.selected < len(self._entries()) - 1:
+        if self.selected < len(self._entries()):
             self.selected += 1
 
     #! Does not support multiple bar items
@@ -149,7 +156,7 @@ volume = BarDataItem("VOL", 75, 100)
 #TODO: Add functionality for menu options
 instruments_menu = Menu("INSTRUMENTS", items=[Synth_Presets.PIANO, Synth_Presets.GUITAR, Synth_Presets.BASS, Synth_Presets.KICK])
 volume_menu = Menu("VOLUME", items=["GLOBAL", "ACTIVE", "PLAYBACK"])
-record_menu = Menu("RECORD", items=["RECORD", "PLAY-PAUSE"])
+record_menu = Menu("RECORD", items=["RECORD-STOP", "PLAY-PAUSE", "PAUSE ALL", "PLAY ALL"])
 key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
 #if time: chord_menu
 

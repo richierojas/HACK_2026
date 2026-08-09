@@ -25,13 +25,14 @@ audio = audiobusio.I2SOut(
 )
 
 oled.init()
-menu.draw()
 
 scale = Scale('C', 3, Scale.MINOR)
 sample_rate = 44100
 
-LIVE_LEVEL = 0.3
-RECORD_LEVEL = 0.1
+LIVE_LEVEL_MAX = 0.5
+RECORD_LEVEL_MAX = 0.3
+VOLUME_CHANGE_THRESHOLD = 2 #percent
+last_volume_percent = None
 
 piano = Synth_Wrapper(scale, Synth_Presets.PIANO, sample_rate=sample_rate)
 guitar = Synth_Wrapper(scale, Synth_Presets.GUITAR, sample_rate=sample_rate)
@@ -70,19 +71,49 @@ audio.play(mixer)
 for name, wrapper in instruments.items():
     voices = voice_map[name]
     mixer.voice[voices["live"]].play(wrapper.synth)
-    mixer.voice[voices["live"]].level = LIVE_LEVEL
+    mixer.voice[voices["live"]].level = LIVE_LEVEL_MAX
     mixer.voice[voices["recording"]].play(wrapper.recording_synths[0])
-    mixer.voice[voices["recording"]].level = RECORD_LEVEL
+    mixer.voice[voices["recording"]].level = RECORD_LEVEL_MAX
 
 active_instrument = INSTRUMENT_NAMES[0]
-
 is_recording = False
+volume_mode = menu.volume_menu.items[1] #Active
+
+#* Immediately changes volume to current slider upon change
+def set_volume_mode(mode):
+    """
+    Switches volume between active, global, playbacks.
+    """
+    global volume_mode
+    volume_mode = mode
+    apply_volume(last_volume_percent)
+
+def apply_volume(percent):
+    fraction = percent / 100
+
+    if volume_mode == "ACTIVE":
+        voices = voice_map[active_instrument]
+        mixer.voice[voices["live"]].level = fraction * LIVE_LEVEL_MAX
+
+    elif volume_mode == "GLOBAL":
+        for name in INSTRUMENT_NAMES:
+            voices = voice_map[name]
+            mixer.voice[voices["live"]].level = fraction * LIVE_LEVEL_MAX
+
+    elif volume_mode == "PLAYBACK":
+        for name in INSTRUMENT_NAMES:
+            voices = voice_map[name]
+            mixer.voice[voices["recording"]].level = fraction * RECORD_LEVEL_MAX
 
 def get_active_instrument():
     return instruments[active_instrument]
 
 def set_active_instrument(name):
     global active_instrument
+    instrument = get_active_instrument()
+    if instrument.is_recording:
+        instrument.end_record()
+        instrument.start_playback()
     active_instrument = name
 
 def select_and_handle():
@@ -94,6 +125,17 @@ def select_and_handle():
     item = select_tuple[1]
     if(item_menu is menu.instruments_menu):
         set_active_instrument(item)
+    elif(item_menu is menu.record_menu):
+        if item == menu.record_menu.items[0]: #record/stop record
+            toggle_record()
+        elif item == menu.record_menu.items[1]: #play/pause record
+            toggle_playback(active_instrument)
+        elif item == menu.record_menu.items[2]: # pause all
+            pause_all_playback()
+        elif item == menu.record_menu.items[3]: #play all
+            play_all_playback()
+    elif(item_menu is menu.volume_menu):
+        set_volume_mode(item)
           
 #TODO: Add pausing and playing
 def toggle_record():
@@ -108,7 +150,7 @@ def pause_all_playback():
     for instrument in INSTRUMENT_NAMES:
         pause_playback(instrument)
 
-def resume_all_playback():
+def play_all_playback():
     for instrument in INSTRUMENT_NAMES:
         play_playback(instrument)
 
@@ -136,6 +178,7 @@ def on_keypad_pressed(key : str):
         menu.move_down()
     elif key == '0':
         select_and_handle()
+    menu.draw()
 
 def on_keypad_released(key : str, duration):
     if key == '*':
@@ -143,6 +186,7 @@ def on_keypad_released(key : str, duration):
             menu.move_up()
         else:
             menu.back()
+    menu.draw()
 
 def on_button_pressed(button_number : int):
     note = get_active_instrument().press(button_number)
@@ -167,9 +211,19 @@ def on_joystick_left(joystick : joystick):
     amount = abs(joystick.fraction_x()) #0 to 1
 
 async def main_loop():
+    global last_volume_percent
+
     menu.draw()
     last_move = 0
     while True:
+        #only use slider for volume for now
+        volume_percent = slider.percent()
+
+        if last_volume_percent is None or abs(volume_percent - last_volume_percent) >= VOLUME_CHANGE_THRESHOLD:
+            apply_volume(volume_percent)
+            last_volume_percent = volume_percent
+            menu.volume.value = volume_percent
+
 
         now = time.monotonic()
 
