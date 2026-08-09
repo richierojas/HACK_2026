@@ -22,16 +22,22 @@ async def main():
             if line:
                 print("Pico:", line)
 
-                if "pressed on pin" in line:
-                    button_name = line.split("  pressed")[0]
+                try:
+                    if line.startswith("PLAY "):
+                        message = json.loads(line[5:])  
 
-                    message = {
-                        "type": "button",
-                        "value": button_name
-                    }
+                        if message.get("type") == "button-pressed":
+                            button_number = message["value"]["button"]
 
-                    await ws.send(json.dumps(message))
-                    print("Sent:", message)
+                            web_message = {
+                                "type": "button",
+                                "value": f"Button {button_number}"
+                            }
 
+                            await ws.send(json.dumps(web_message))
+                            print("Sent to WebSocket:", web_message)
+
+                except (json.JSONDecodeError, KeyError):
+                    pass
 
 asyncio.run(main())
