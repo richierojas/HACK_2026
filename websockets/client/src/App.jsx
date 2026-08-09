@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import {Navbar} from './components/Navbar.jsx'
-import {Hero} from './components/Hero.jsx'
+import { Routes, Route } from 'react-router'
+
+import { Navbar } from './components/Navbar.jsx'
+import { Hero } from './components/Hero.jsx'
 import { Instrument } from './components/Instrument.jsx'
 import { SoundProfiles } from './components/SoundProfiles.jsx'
 import { Band } from './components/Band.jsx'
+import { Music } from './components/Music.jsx'
+
 import './App.css'
 
 function App() {
@@ -94,29 +98,64 @@ function App() {
   }
 
   return (
-    <>
-      
-      <Navbar />
-      <Hero />
-      <Instrument />
-      <SoundProfiles />
-      <Band />
-      <section id="live">
+  <>
+    <Navbar />
 
-        {/*Rave Visualizer*/}
-        <div className="rave-container">
+    <Routes>
 
-          <div
-            className={`visualizer-orb ${lastButton ? lastButton.toLowerCase().replace(' ', '') : ''}`}
-          />
-          <div className="last-input">
-            Last Input: {lastButton || 'Waiting..'}
-          </div>
-      </div>
+      <Route
+        path="/"
+        element={<Hero />}
+      />
 
-      </section>
-    </>
-  )
+      <Route
+        path="/instrument"
+        element={<Instrument />}
+      />
+
+      <Route
+        path="/sounds"
+        element={<SoundProfiles />}
+      />
+
+      <Route
+        path="/band"
+        element={<Band />}
+      />
+
+      <Route
+        path="/live"
+        element={
+          <section id="live">
+
+            <div className="rave-container">
+
+              <div
+                className={`visualizer-orb ${
+                  lastButton
+                    ? lastButton.toLowerCase().replace(' ', '')
+                    : ''
+                }`}
+              />
+
+              <div className="last-input">
+                Last Input: {lastButton || 'Waiting..'}
+              </div>
+
+            </div>
+
+          </section>
+        }
+      />
+
+      <Route
+        path="/music"
+        element={<Music />}
+      />
+
+    </Routes>
+  </>
+)
 }
 
 export default App

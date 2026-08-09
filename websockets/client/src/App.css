@@ -22,20 +22,20 @@ body {
 }
 
 /* Main page */
+#live {
+  min-height: calc(100vh - 80px);
+  width: 100%;
 
-#center {
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 25px;
-  padding: 40px 20px;
+  align-items: center;
+
+  padding: 30px 20px 60px;
 }
 
 /* Title */
 
-#center h1 {
+#live h1 {
   margin: 0;
   font-size: 42px;
   letter-spacing: 6px;
@@ -45,7 +45,7 @@ body {
     0 0 25px #00ffff;
 }
 
-#center h3 {
+#live h3 {
   margin: 0;
 }
 
@@ -77,16 +77,19 @@ body {
 /* Rave Visualizer */
 
 .rave-container {
-  width: min(900px, 95vw);
-  min-height: 600px;
+  width: min(1200px, 92vw);
+  min-height: 720px;
+
+  margin: 0 auto;
+
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+
   position: relative;
   overflow: hidden;
-  border-radius: 30px;
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 35px;
 
   background:
     radial-gradient(
@@ -138,8 +141,9 @@ body {
 /* Main visualizer orb */
 
 .visualizer-orb {
-  width: 240px;
-  height: 240px;
+  width: 300px;
+  height: 300px;
+
   border-radius: 50%;
 
   background: radial-gradient(
@@ -344,7 +348,7 @@ body {
 /* Mobile */
 
 @media (max-width: 600px) {
-  #center h1 {
+  #live h1 {
     font-size: 28px;
     letter-spacing: 3px;
   }
@@ -361,7 +365,7 @@ body {
 
 /* Hero Section */
 .hero {
-  min-height:100 vh;
+  min-height: 100vh;
   width: 100%;
 
   display: flex;
@@ -375,7 +379,7 @@ body {
 
   background:
     radial-gradient(
-      circle at 50% 40% 
+      circle at 50% 40%,
       rgba(110, 35, 190, 0.45) 0%,
       rgba(20, 8, 45, 0.95) 40%,
       #020207 75%

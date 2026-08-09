@@ -1,26 +1,18 @@
+import { Link } from 'react-router'
+
 export function Navbar() {
   return (
     <nav className="navbar">
 
-      <a href="#" className="nav-logo">
+      <Link to="/" className="nav-logo">
         COSMIC SPELLSYNTH
-      </a>
+      </Link>
 
       <div className="nav-links">
-        <a href="#">Home</a>
-
-        <a href="#instrument">
-          Instrument
-        </a>
-
-        <a href="#sounds">
-          Sounds
-        </a>
-
-        <a href="#band">
-          Meet the Band
-        </a>
-        
+        <Link to="/instrument">Instrument</Link>
+        <Link to="/sounds">Sounds</Link>
+        <Link to="/band">Meet the Band</Link>
+        <Link to="/music">Setlist</Link>
       </div>
 
     </nav>
