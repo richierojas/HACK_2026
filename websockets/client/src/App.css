@@ -972,6 +972,7 @@ html {
     0 0 18px rgba(0, 255, 255, 0.08),
     0 0 28px rgba(180, 60, 255, 0.08);
   transition: 0.3s ease;
+  cursor: pointer;
 }
 
 .member-card:hover {
@@ -1036,6 +1037,89 @@ html {
   box-shadow:
     0 0 20px rgba(0, 255, 255, 0.12),
     0 0 40px rgba(180, 60, 255, 0.08);
+}
+
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  background: rgba(2, 2, 12, 0.82);
+  backdrop-filter: blur(12px);
+}
+
+.profile-modal {
+  position: relative;
+
+  width: min(700px, 90vw);
+  max-height: 90vh;
+
+  padding: 45px;
+  overflow-y: auto;
+
+  text-align: center;
+
+  border-radius: 30px;
+  border: 1px solid rgba(0, 255, 255, 0.4);
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(90, 30, 160, 0.7),
+      rgba(5, 5, 20, 0.98) 65%
+    );
+
+  box-shadow:
+    0 0 35px rgba(0, 255, 255, 0.25),
+    0 0 80px rgba(180, 50, 255, 0.2);
+
+  animation: profileOpen 0.3s ease;
+}
+
+.profile-modal-photo {
+  width: 250px;
+  height: 250px;
+
+  object-fit: cover;
+  border-radius: 50%;
+
+  border: 3px solid #00ffff;
+
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.5),
+    0 0 40px rgba(180, 50, 255, 0.3);
+}
+
+.profile-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+
+  border: none;
+  background: none;
+
+  color: white;
+  font-size: 35px;
+
+  cursor: pointer;
+}
+
+@keyframes profileOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /*Artemis Navbar*/
