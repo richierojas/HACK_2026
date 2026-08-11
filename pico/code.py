@@ -76,6 +76,11 @@ active_instrument = INSTRUMENT_NAMES[0]
 is_recording = False
 volume_mode = menu.volume_menu.items[1] #Active
 
+#Sent over USB serial to bridge/serial_bridge.py -> websocket server -> website
+#Bridge drops any line that isn't JSON with a known type, so keep these on their own line
+def send_event(event_type, value):
+    print(json.dumps({"type": event_type, "value": value}))
+
 #* Immediately changes volume to current slider upon change
 def set_volume_mode(mode):
     """
@@ -112,6 +117,7 @@ def set_active_instrument(name):
         instrument.end_record()
         instrument.start_playback()
     active_instrument = name
+    send_event("instrument", active_instrument)
 
 def select_and_handle():
     select_tuple = menu.select() #None if submenu, (menu, item_string) if item 
@@ -217,6 +223,7 @@ async def main_loop():
     global last_volume_percent
 
     menu.draw()
+    send_event("instrument", active_instrument) #initial state so the website starts in sync
     last_move = 0
     while True:
         #only use slider for volume for now
@@ -226,6 +233,7 @@ async def main_loop():
             apply_volume(volume_percent)
             last_volume_percent = volume_percent
             menu.volume.value = volume_percent
+            send_event("volume", volume_percent)
 
 
         now = time.monotonic()
@@ -263,7 +271,7 @@ async def main_loop():
             
             if event["type"] == "button-pressed":
                 button_number = event["value"]["button"]
-                print("PLAY", eventraw)
+                print(eventraw) #already {"type":"button-pressed",...}, forwarded as-is
                 on_button_pressed(button_number)
 
                 # synth.note_on(...)
@@ -271,7 +279,7 @@ async def main_loop():
             elif event["type"] == "button-released":
                 duration = event["value"]["duration"]
                 button_number = event["value"]["button"]
-                print("STOP", eventraw, "Held:", round(duration, 2))
+                print(eventraw) #already {"type":"button-released",...} with duration
                 on_button_released(button_number, duration)
 
         #HANDLE KEYPAD
