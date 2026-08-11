@@ -8,6 +8,8 @@ import joystick
 import slider
 import matrix_keypad
 import json
+import array
+import math
 
 import synthio
 import asyncio
@@ -18,31 +20,34 @@ from sound.synth import Synth_Wrapper
 from sound.scale import Scale
 from sound.synth_presets import Synth_Presets
 
-audio = audiobusio.I2SOut(
-    bit_clock=board.GP1,
-    word_select=board.GP2,
-    data=board.GP0,
-)
-
 oled.init()
 
-scale = Scale('C', 3, Scale.MINOR)
-sample_rate = 22050
+SAMPLE_RATE = 22050
 
-LIVE_LEVEL_MAX = 0.5
-RECORD_LEVEL_MAX = 0.3
+LIVE_LEVEL_MAX = 0.3
+RECORD_LEVEL_MAX = 0.15
 VOLUME_CHANGE_THRESHOLD = 2 #percent
 last_volume_percent = None
+volume_mode = menu.volume_menu.items[1] #Active
 
-piano = Synth_Wrapper(scale, Synth_Presets.PIANO, sample_rate=sample_rate)
-guitar = Synth_Wrapper(scale, Synth_Presets.GUITAR, sample_rate=sample_rate)
-bass = Synth_Wrapper(scale, Synth_Presets.BASS, sample_rate=sample_rate)
+octave_offset = 0
 
-instruments = { piano.name:piano, guitar.name:guitar, bass.name:bass}
+# region Instrument Presets
+scale = Scale('C', 3, Scale.MAJOR)
+scale_guitar = Scale('C', 2, Scale.MAJOR)
+scale_bass = Scale('C', 0, Scale.MAJOR)
+
+piano = Synth_Wrapper(scale, Synth_Presets.PIANO, sample_rate=SAMPLE_RATE)
+guitar = Synth_Wrapper(scale_guitar, Synth_Presets.GUITAR, sample_rate=SAMPLE_RATE)
+bass = Synth_Wrapper(scale_bass, Synth_Presets.BASS, sample_rate=SAMPLE_RATE)
+
+instruments = { Synth_Presets.PIANO:piano, Synth_Presets.GUITAR:guitar, Synth_Presets.BASS:bass}
 INSTRUMENT_NAMES = list(instruments.keys())
-voice_map = {} # name: {live:voice#, recording:voice#}
+active_instrument = "PIANO"
 
+voice_map = {} # name: {live:voice#, recording:voice#}
 voice_index = 0
+#initialize voice map
 for name in INSTRUMENT_NAMES:
     instrument = instruments[name]
 
@@ -53,12 +58,18 @@ for name in INSTRUMENT_NAMES:
     voice_index += 1
 
     voice_map[name] = {"live":live_voice, "recording": rec_voice}
-
 num_voices = voice_index
+# endregion
 
+# region Mixer setup
+audio = audiobusio.I2SOut(
+    bit_clock=board.GP1,
+    word_select=board.GP2,
+    data=board.GP0,
+)
 mixer = audiomixer.Mixer(
     voice_count=num_voices,
-    sample_rate=sample_rate,
+    sample_rate=SAMPLE_RATE,
     channel_count=1,
     bits_per_sample=16,
     samples_signed=True,
@@ -71,15 +82,7 @@ for name, wrapper in instruments.items():
     mixer.voice[voices["live"]].level = LIVE_LEVEL_MAX
     mixer.voice[voices["recording"]].play(wrapper.recording_synths[0])
     mixer.voice[voices["recording"]].level = RECORD_LEVEL_MAX
-
-active_instrument = INSTRUMENT_NAMES[0]
-is_recording = False
-volume_mode = menu.volume_menu.items[1] #Active
-
-#Sent over USB serial to bridge/serial_bridge.py -> websocket server -> website
-#Bridge drops any line that isn't JSON with a known type, so keep these on their own line
-def send_event(event_type, value):
-    print(json.dumps({"type": event_type, "value": value}))
+# endregion
 
 #* Immediately changes volume to current slider upon change
 def set_volume_mode(mode):
@@ -117,8 +120,8 @@ def set_active_instrument(name):
         instrument.end_record()
         instrument.start_playback()
     active_instrument = name
-    send_event("instrument", active_instrument)
 
+# Menu selection
 def select_and_handle():
     select_tuple = menu.select() #None if submenu, (menu, item_string) if item 
     print("Selected:", menu.current())
@@ -139,8 +142,8 @@ def select_and_handle():
             play_all_playback()
     elif(item_menu is menu.volume_menu):
         set_volume_mode(item)
-          
-#TODO: Add pausing and playing
+
+# region Record/playback functions
 def toggle_record():
     instrument = get_active_instrument()
     if not instrument.is_recording:
@@ -172,8 +175,10 @@ def play_playback(instrument_name):
 def pause_playback(instrument_name):
     instrument = instruments[instrument_name]
     instrument.pause_playback()
+# endregion
 
-#Bottom bottom three keys are (quick=up, long=back), select, move 
+# region Handlers for joystick, button, and keypad
+#Bottom three keypad kets are [(quick=up, long=back), select, move]
 def on_keypad_pressed(key : str):
     if key == '*':
         pass #see keypad_released, short press moves up, long press moves back 
@@ -184,7 +189,8 @@ def on_keypad_pressed(key : str):
     else:
         try:
             keynumber = int(key)
-            menu.move_to_selection(key)
+            menu.move_to_selection(keynumber)
+            select_and_handle()
         except ValueError:
             pass
     menu.draw()
@@ -198,11 +204,12 @@ def on_keypad_released(key : str, duration):
     menu.draw()
 
 def on_button_pressed(button_number : int):
-    note = get_active_instrument().press(button_number)
+    get_active_instrument().press(button_number, octave_offset=octave_offset)
+    #instruments["PIANO"].press(button_number)
     print("Mixer playing: ", mixer.voice[0].playing)
 
 def on_button_released(button_number : int, duration):
-    get_active_instrument().release(button_number)
+    get_active_instrument().release(button_number, octave_offset=octave_offset)
 
 def on_joystick_pressed():
     toggle_record()
@@ -214,48 +221,51 @@ def on_joystick_down(joystick : joystick):
     amount = abs(joystick.fraction_y()) #0 to 1
 
 def on_joystick_right(joystick : joystick):
+    global octave_offset
+    #octave_offset = 1
     amount = joystick.fraction_x() #0 to 1
 
 def on_joystick_left(joystick : joystick):
+    global octave_offset
+    #octave_offset = -1
     amount = abs(joystick.fraction_x()) #0 to 1
+# endregion
+
+def test_synth():
+    samples_per_cycle = int(SAMPLE_RATE / 440)
+    samples = array.array("h", [int(math.sin(2*math.pi*i/samples_per_cycle)*16000) for i in range(samples_per_cycle)])
+    test_note = synthio.Note(frequency=440, waveform=memoryview(samples))
+    piano.synth.press(test_note)
 
 async def main_loop():
     global last_volume_percent
 
     menu.draw()
-    send_event("instrument", active_instrument) #initial state so the website starts in sync
     last_move = 0
     while True:
         #only use slider for volume for now
         volume_percent = slider.percent()
-
         if last_volume_percent is None or abs(volume_percent - last_volume_percent) >= VOLUME_CHANGE_THRESHOLD:
             apply_volume(volume_percent)
             last_volume_percent = volume_percent
             menu.volume.value = volume_percent
-            send_event("volume", volume_percent)
-
+            menu.draw()
 
         now = time.monotonic()
 
-        # Navigate menu
+        # HANDLE JOYSTICK
         if joystick.up() and now - last_move > 0.20:
             on_joystick_up(joystick)
             last_move = now
-
         elif joystick.down() and now - last_move > 0.20:
             on_joystick_down(joystick)
             last_move = now
-
         elif joystick.right() and now - last_move > 0.20:
             on_joystick_right(joystick)
             last_move = now
-
         elif joystick.left() and now - last_move > 0.20:
             on_joystick_left(joystick)
             last_move = now
-
-        # Select instrument
         if joystick.pressed():
             on_joystick_pressed()
 
@@ -268,30 +278,24 @@ async def main_loop():
         events = buttons.update()
         for eventraw in events:
             event = json.loads(eventraw)
-            
             if event["type"] == "button-pressed":
                 button_number = event["value"]["button"]
-                print(eventraw) #already {"type":"button-pressed",...}, forwarded as-is
+                print("PLAY", eventraw)
                 on_button_pressed(button_number)
-
-                # synth.note_on(...)
-
             elif event["type"] == "button-released":
                 duration = event["value"]["duration"]
                 button_number = event["value"]["button"]
-                print(eventraw) #already {"type":"button-released",...} with duration
+                print("STOP", eventraw, "Held:", round(duration, 2))
                 on_button_released(button_number, duration)
 
         #HANDLE KEYPAD
         events = matrix_keypad.update()
         for eventraw in events:
             event = json.loads(eventraw)
-
             if event["type"] == "keypad-pressed":
                 key = event["value"]["key"]
                 print("PRESSED", eventraw)
                 on_keypad_pressed(key)
-
             elif event["type"] == "keypad-released":
                 key = event["value"]["key"]
                 duration = event["value"]["duration"]
