@@ -6,16 +6,24 @@ import menu
 import joystick
 import slider
 import matrix_keypad
+import json
 
 last_move = 0
+last_volume = None
+last_instrument = None
 
 oled.init()
 
 while True:
 
     # Update volume from slider
-    menu.volume.value = slider.percent()
+    current_volume = slider.percent()
 
+    if last_volume is None or abs(current_volume - last_volume) >= 2:
+        print(json.dumps({"type": "volume", "value": current_volume}))
+        last_volume = current_volume
+
+    menu.volume = current_volume
     menu.draw()
     # Draw menu
 
@@ -54,15 +62,14 @@ while True:
     events = buttons.update()
 
     for event in events:
+        print(event)
 
-        if event[0] == "pressed":
-            print("PLAY", event[1])
+    current_instrument = menu.current()
 
-            # synth.note_on(...)
+    if last_instrument is None or current_instrument != last_instrument:
+        print(json.dumps({"type": "instrument", "value": current_instrument}))
+        last_instrument = current_instrument
 
-        elif event[0] == "released":
-            print("STOP", event[1], "Held:", round(event[2], 2))
-            
     events = matrix_keypad.update()
 
     for event in events:
