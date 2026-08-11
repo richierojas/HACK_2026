@@ -18,11 +18,16 @@ from sound.synth_presets import Synth_Presets
 #TODO: Recording; each synth (type of sound) should be able to record and play their sounds
 class Synth_Wrapper:
     RECORDING_CHANNELS = 1
-    def __init__(self, scale : Scale, preset = Synth_Presets.PIANO, sample_rate = 22050):
+    def __init__(self, scale : Scale, preset = Synth_Presets.PIANO, sample_rate = 44100):
         self.sample_rate = sample_rate
         self.scale = scale
+        self.name = preset
         self.preset = Synth_Presets(preset)
         self.synth = synthio.Synthesizer(sample_rate=self.sample_rate, waveform=self.preset.waveform, envelope=self.preset.envelope)
+
+        self.is_playback = False
+        self.is_recording = False
+
         #? Remove buffering? self.notes = [synthio.Note(frequency=synthio.midi_to_hz(scale.get_midi_note(i))) for i in range(1, 9)]
         self.held_notes = {}
         self.recordings = [[] for _ in range(Synth_Wrapper.RECORDING_CHANNELS)]
@@ -96,6 +101,7 @@ class Synth_Wrapper:
 
     #Record currently played notes and modulations
     def record(self, record_channel_index=0):
+        self.is_recording = True
         self.recordings[record_channel_index].clear()
         self.record_start_times[record_channel_index] = time.monotonic()
         print("Synth started recording")
@@ -105,9 +111,9 @@ class Synth_Wrapper:
             #modulations,
             #note releases
     
-    
     #Ends recording. Sets recorded notes held when recording ends to be released at the end of playback 
     def end_record(self, record_channel_index=0):
+        self.is_recording = False
         print("Synth ended recording")
         for note in self.held_notes.values():
                 self.log_event("note-released", note)
@@ -116,29 +122,36 @@ class Synth_Wrapper:
         #TODO: Broadcast recording pause for OLED to display
 
     def start_playback(self, record_channel_index=0):
+        self.is_playback = True
         existing = self.existing_playbacks[record_channel_index]
         if existing is not None and not existing.done():
-            #TODO: Allow play to restart recording
             print("Attempted to replay existing recording")
+            self.resume_playback(record_channel_index=record_channel_index)
             return
-        asyncio.create_task(self.play_record(record_channel_index=record_channel_index))
+        self.existing_playbacks[record_channel_index] = asyncio.create_task(
+            self.play_record(record_channel_index=record_channel_index)
+        )
 
     def pause_playback(self, record_channel_index=0):
+        self.is_playback = False
         self.playback_pause_events[record_channel_index].clear()
 
     def resume_playback(self, record_channel_index=0):
+        self.is_playback = True
         self.playback_pause_events[record_channel_index].set()
 
-    
     async def play_record(self, record_channel_index=0):
-
         print("Synth playing record")
         pause_event = self.playback_pause_events[record_channel_index]
         #TODO: Complete play record
         #? Remove envelope and waveform?
         while True:
             prev_elapsed_time = 0
-            for event in self.recordings[record_channel_index]:
+            events = self.recordings[record_channel_index]
+            if not events:
+                await asyncio.sleep(0.2) #prevent spinning if no events
+                continue
+            for event in events:
                 delay = event['time'] - prev_elapsed_time
                 prev_elapsed_time = event['time']
                 await asyncio.sleep(delay)
