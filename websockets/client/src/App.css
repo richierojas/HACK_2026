@@ -1257,6 +1257,38 @@ html {
   outline: none;
 }
 
+/*Music*/
+
+.performance-section {
+  width: min(900px, 100%);
+  margin: 0 auto 70px;
+  text-align: center;
+}
+
+.performance-section h3 {
+  margin: 15px 0 25px;
+
+  font-size: 28px;
+  color: white;
+
+  text-shadow:
+    0 0 10px rgba(255, 0, 255, 0.5),
+    0 0 20px rgba(0, 255, 255, 0.25);
+}
+
+.performance-video {
+  width: 100%;
+  max-width: 850px;
+
+  border-radius: 24px;
+
+  border: 1px solid rgba(0, 255, 255, 0.35);
+
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.15),
+    0 0 55px rgba(170, 50, 255, 0.15);
+}
+
 .nav-logo,
 .hero h1,
 .instrument-header h2,
