@@ -1,11 +1,11 @@
-import serial
-import json
 import asyncio
+import json
+import serial
 import websockets
 
 SERIAL_PORT = "/dev/cu.usbmodem1301"
 BAUD_RATE = 115200
-WEBSOCKET_URI = "ws://localhost:8765"
+WEBSOCKET_URI = "ws://127.0.0.1:8765"
 
 
 async def main():
@@ -17,27 +17,44 @@ async def main():
         print("Connected to WebSocket server")
 
         while True:
-            line = ser.readline().decode("utf-8").strip()
+            try:
+                line = ser.readline().decode("utf-8", errors="replace").strip()
+            except Exception as exc:
+                print("Serial read error:", exc)
+                await asyncio.sleep(0.1)
+                continue
 
-            if line:
-                print("Pico:", line)
+            if not line:
+                continue
 
-                try:
-                    if line.startswith("PLAY "):
-                        message = json.loads(line[5:])  
+            print("Pico:", line)
 
-                        if message.get("type") == "button-pressed":
-                            button_number = message["value"]["button"]
+            try:
+                message = json.loads(line)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                continue
 
-                            web_message = {
-                                "type": "button",
-                                "value": f"Button {button_number}"
-                            }
+            if not isinstance(message, dict):
+                continue
 
-                            await ws.send(json.dumps(web_message))
-                            print("Sent to WebSocket:", web_message)
+            event_type = message.get("type")
+            if event_type not in {"button-pressed", "button-released", "volume", "instrument"}:
+                continue
 
-                except (json.JSONDecodeError, KeyError):
-                    pass
+            try:
+                if event_type in {"button-pressed", "button-released"}:
+                    if not isinstance(message.get("value"), dict):
+                        continue
+                elif event_type == "volume":
+                    int(message.get("value"))
+                elif event_type == "instrument":
+                    if not isinstance(message.get("value"), str):
+                        continue
+            except (TypeError, ValueError):
+                continue
+
+            await ws.send(json.dumps(message))
+            print("Sent to WebSocket:", message)
+
 
 asyncio.run(main())
