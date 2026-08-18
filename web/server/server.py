@@ -32,26 +32,43 @@ async def handle_client(websocket):
             except json.JSONDecodeError:
                 print(f"Ignoring malformed message: {message}")
                 continue
+            # .get() rather than [] - a message missing "type" or "value" used
+            # to raise KeyError, which escaped the ConnectionClosed handler
+            # below and killed that client's connection outright.
+            if not isinstance(messageDetails, dict):
+                print(f"Ignoring non-object message: {message}")
+                continue
+
+            event_type = messageDetails.get("type")
+            value = messageDetails.get("value")
+            if event_type is None:
+                print(f"Ignoring message with no type: {message}")
+                continue
+
             # Store in chat logs
             chat_logs.append({
-                "type": messageDetails["type"],
-                "message": messageDetails["value"],
+                "type": event_type,
+                "message": value,
                 "timestamp": timestamp
             })
             print(f"Received: {message}")
             # Broadcast the message to all connected clients
             response = {
                 "status": "received",
-                "type": messageDetails["type"],
-                "value": messageDetails["value"],
+                "type": event_type,
+                "value": value,
                 "timestamp": timestamp
             }
-            # Send to all connected clients
+            # Send to all connected clients. Iterate over a copy: a slow or
+            # dead client must not stop the others from being served, and the
+            # set is mutated below.
             disconnected = set()
-            for client in connected_clients:
+            for client in list(connected_clients):
                 try:
                     await client.send(json.dumps(response))
-                except websockets.exceptions.ConnectionClosed:
+                except Exception:
+                    # Any send failure means that client is gone - not just
+                    # ConnectionClosed. Drop it and carry on serving the rest.
                     disconnected.add(client)
             # Remove disconnected clients
             for client in disconnected:
