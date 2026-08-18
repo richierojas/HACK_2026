@@ -35,6 +35,9 @@ class BarDataItem(MenuDataItem):
 # * Assume only one item shown in the bar for now
 # ! Does not handle empty arrays, passed arrays must be None or filled
 class Menu:
+    #128px display / 6px per character, drawn from x=2
+    MAX_TITLE_CHARS = 21
+
     def __init__(self, name : str, data_items_array = None, bar_data_item : BarDataItem = None, submenus = None, items = None):
         self.name = name
         self.selected = 0
@@ -104,7 +107,15 @@ class Menu:
         oled.clear()
 
         # ===== Title =====
-        oled.text(f"ARTEMIS AUDIO - {supermenu_string}", 12, 2)
+        #The display is 128px wide and oled.text advances 6px per character, so
+        #only 21 characters fit at x=2. "ARTEMIS AUDIO - \MAIN MENU\VOLUME" is
+        #210px and used to run off the screen, hiding which menu you are in.
+        #Show the path alone, keeping the deepest (current) menu when too long.
+        #Separator is "-" because font5x7 has no "\", ">" or "/" glyph.
+        title = supermenu_string.replace("\\", "-").lstrip("-")
+        if len(title) > Menu.MAX_TITLE_CHARS:
+            title = title[-Menu.MAX_TITLE_CHARS:]     #keep the current menu visible
+        oled.text(title, 2, 2)
         oled.line(0, 11, 127, 11)
 
         # Show 4 menu items
@@ -147,20 +158,29 @@ class Menu:
             if fill > 0:
                 oled.fill_rect(25, 56, fill, 6)
 
-            # Percentage
-            oled.text(str(bar_data.fraction() * 100), 100, 56)
+            # Percentage. int() because fraction()*100 renders as "73.0" and the
+            # trailing ".0" pushes the text off the 128px display.
+            oled.text(str(int(bar_data.fraction() * 100)), 100, 56)
 
         oled.show()
 
 volume = BarDataItem("VOL", 75, 100)
 #TODO: Add functionality for menu options
-instruments_menu = Menu("INSTRUMENTS", items=[Synth_Presets.PIANO, Synth_Presets.GUITAR, Synth_Presets.BASS])
+instruments_menu = Menu("INSTRUMENTS", items=list(Synth_Presets.ALL))
 volume_menu = Menu("VOLUME", items=["GLOBAL", "ACTIVE", "PLAYBACK"])
 record_menu = Menu("RECORD", items=["RECORD-STOP", "PLAY-PAUSE", "PAUSE ALL", "PLAY ALL"])
 key_menu = Menu("KEY", items=["KEY LETTER", "QUALITY", "OCTAVE"])
+#Labels here are placeholders - code.py rewrites them with the live values, the
+#same way it does for the KEY menu.
+effects_menu = Menu("EFFECTS", items=["ARP OFF", "ARP RATE 8", "VIBRATO OFF"])
 #if time: chord_menu
 
-main_menu = Menu("MAIN MENU", submenus=[instruments_menu, volume_menu, record_menu, key_menu], data_items_array=[volume], bar_data_item=volume)
+#volume_menu is deliberately NOT in this list. Its GLOBAL/ACTIVE/PLAYBACK modes
+#only mean something once a working volume control exists, and the slider is
+#disconnected (see SLIDER_CONNECTED in code.py) so volume is pinned at 100.
+#Put volume_menu back into submenus below to restore it - the handling in
+#code.py's select_and_handle is still there and still works.
+main_menu = Menu("MAIN MENU", submenus=[instruments_menu, record_menu, key_menu, effects_menu], data_items_array=[volume], bar_data_item=volume)
 
 _active = main_menu
 
@@ -187,7 +207,7 @@ def volume_down():
 
 #TODO: Add behavior for selecting item options
 def select():
-    """Enter currently selected submenu. 
+    """Enter currently selected submenu.
     Returns None if a submenu was selected, returns (menu, item string) if an item was selected"""
     global _active
     picked = _active.current()
@@ -201,5 +221,12 @@ def back():
     global _active
     if _active.supermenu is not None:
         _active = _active.supermenu
+
+def state():
+    """Where the menu is right now, as MENUNAME[selected]. For serial debugging."""
+    entries = _active._entries()
+    current = entries[_active.selected] if entries else None
+    current_name = current.name if isinstance(current, Menu) else current
+    return "%s[%d]=%s" % (_active.name, _active.selected, current_name)
 
 
