@@ -26,6 +26,8 @@ export function Navbar() {
         <Link to="/sounds">Sounds</Link>
         <Link to="/band">The Band</Link>
         <Link to="/music">Setlist</Link>
+        <Link to="/live">Live</Link>
+        <Link to="/play" className="nav-play">Star Runner</Link>
       </div>
 
     </nav>

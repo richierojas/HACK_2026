@@ -7,6 +7,7 @@ import { Instrument } from './components/Instrument.jsx'
 import { SoundProfiles } from './components/SoundProfiles.jsx'
 import { Band } from './components/Band.jsx'
 import { Music } from './components/Music.jsx'
+import { RhythmGame } from './components/RhythmGame.jsx'
 
 import './App.css'
 
@@ -19,6 +20,12 @@ function App() {
   const [lastButton, setLastButton] = useState(null)
   const [volume, setVolume] = useState(50)
   const [currentInstrument, setCurrentInstrument] = useState(null)
+
+  // Every button press, with a sequence number. The game needs to react to
+  // each press individually - without the counter, pressing the same button
+  // twice in a row would look like unchanged state and be ignored.
+  const [lastHit, setLastHit] = useState(null)
+  const hitSeq = useRef(0)
 
   const wsRef = useRef(null)
 
@@ -57,6 +64,8 @@ function App() {
           const buttonNumber = data.value?.button
           if (buttonNumber != null) {
             setLastButton(`Button ${buttonNumber}`)
+            hitSeq.current += 1
+            setLastHit({ button: buttonNumber, seq: hitSeq.current })
           }
         } else if (data.type === "button-released") {
           const buttonNumber = data.value?.button
@@ -191,6 +200,16 @@ function App() {
             </div>
 
           </section>
+        }
+      />
+
+      <Route
+        path="/play"
+        element={
+          <RhythmGame
+            lastHit={lastHit}
+            currentInstrument={currentInstrument}
+          />
         }
       />
 
